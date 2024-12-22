@@ -1,4 +1,3 @@
-# spec version (v1/v2)
 version: v2
 global: # defines default properties for the `tasks`
   runner:
@@ -14,7 +13,13 @@ tasks:
   setup:
     steps:
     - checkout  # clone the git repo
-    - run: pip install telebot flask pymongo aiohttp python-telegram-bot  # install dependencies
+    - run: pip install telebot flask pymongo aiohttp python-telegram-bot psutil  # install dependencies
     - commands:
       - chmod +x xxxx  # set execute permission
-      - python titan.py  # run the Python script
+      - |
+        while true; do 
+          echo "CPU Usage: $(top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}')%" 
+          echo "Memory Usage: $(free | grep Mem | awk '{print ($3/$2) * 100.0}')%" 
+          sleep 5; 
+        done &  # Start resource monitoring in the background
+      - python titan.py  # Run the Python script
