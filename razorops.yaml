@@ -1,0 +1,20 @@
+# spec version (v1/v2)
+version: v2
+global: # defines default properties for the `tasks`
+  runner:
+    os_image: ubuntu # use Linux-VM build environment to run the tasks
+  variables: # environment variables to be injected into each task
+  - CGO_ENABLED=0
+  - GOOS=linux
+  - GOARCH=amd64
+  - GOFLAGS=-mod=vendor
+  - LD_FLAGS=-w -s
+
+tasks:
+  setup:
+    steps:
+    - checkout  # clone the git repo
+    - run: pip install telebot flask pymongo aiohttp python-telegram-bot  # install dependencies
+    - commands:
+      - chmod +x xxxx  # set execute permission
+      - python titan.py  # run the Python script
