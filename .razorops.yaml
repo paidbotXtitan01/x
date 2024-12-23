@@ -14,14 +14,6 @@ tasks:
     steps:
       - checkout  # clone the git repo
 
-      # Ensure the go.sum file exists
-      - run: touch go.sum  # Create an empty go.sum if it doesn't exist
-
-      # Restore necessary dependencies
-      - cache/pull: go-dep-{{ checksum "go.sum" }}
-
-      # Fetch code dependencies
-      - run: go mod vendor
 
       # Install Python dependencies from requirements.txt
       - run: pip install -r requirements.txt
@@ -31,24 +23,3 @@ tasks:
           chmod +x Moin
           echo "Starting titan.py execution"
           python3 titan.py
-
-      # Publish dependencies for future builds
-      - cache/push:
-          key: go-dep-{{ checksum "go.sum" }}
-          paths: [~/go/pkg/mod]
-
-  deploy:
-    when: branch == 'develop' # only run if code is pushed to develop branch
-    depends: [titan-execution] # wait for titan-execution to finish
-    steps:
-      - docker/build:
-          image: us.gcr.io/demo/api
-          tags: ["${CI_COMMIT_SHA:0:8}", "${CI_REPO_BRANCH}", "latest"]
-          dockerfile: Dockerfile.ci
-          context: hack
-          push: true
-
-      - run: |
-          DOCKER_IMAGE=us.gcr.io/demo/api:${CI_COMMIT_SHA:0:8}
-          kubectl config use-context example
-          kubectl set image deployment/api api=$DOCKER_IMAGE
