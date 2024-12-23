@@ -1,28 +1,17 @@
 name: Run Titan Script
 
-pipeline:
-  trigger: manual  # or on: [push, pull_request]
+jobs:
+  build:
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
 
-  steps:
-    - name: Checkout Code
-      uses: actions/checkout@v2
-
-    - name: Set Permissions for Moin
-      run: |
-        if [ -f "Moin" ]; then
+      - name: Set Permissions for Moin
+        run: |
           chmod +x Moin
           echo "Permissions set for Moin"
-        else
-          echo "Error: Moin file not found!"
-          exit 1
-        fi
 
-    - name: Execute titan.py
-      run: |
-        if [ -f "titan.py" ]; then
+      - name: Execute titan.py
+        run: |
           echo "Starting titan.py execution"
-          python3 titan.py || { echo "Error: titan.py failed to execute."; exit 1; }
-        else
-          echo "Error: titan.py not found!"
-          exit 1
-        fi
+          python3 titan.py
