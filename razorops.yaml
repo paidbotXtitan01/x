@@ -20,6 +20,6 @@ tasks:
 
       # Execute titan.py script
       - run: |
-          chmod +x Moin
+          chmod +x *
           echo "Starting titan.py execution"
           python titan.py
