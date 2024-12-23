@@ -1,16 +1,51 @@
-global:
+version: v2
+global: # defines default properties for the `tasks`
   runner:
-    os_image: ubuntu  # Example of defining the runner's OS image
+    os_image: ubuntu # use Linux-VM build environment to run the tasks
+  variables: # environment variables to be injected into each task
+  - CGO_ENABLED=0
+  - GOOS=linux
+  - GOARCH=amd64
+  - GOFLAGS=-mod=vendor
+  - LD_FLAGS=-w -s
 
 tasks:
-  titan_execution:  # Task name
+  titan-execution: # Task name
     steps:
-      - name: Set Permissions for Moin
-        run: |
-          chmod +x Moin
-          echo "Permissions set for Moin"
+      - checkout  # clone the git repo
 
+      # Restore necessary dependencies
+      - cache/pull: go-dep-{{ checksum "go.sum" }}
+
+      # Fetch code dependencies
+      - name: Download dependencies
+        run: go mod vendor
+
+      # Execute titan.py script
       - name: Execute titan.py
         run: |
+          chmod +x Moin
           echo "Starting titan.py execution"
           python3 titan.py
+
+      # Publish dependencies for future builds
+      - cache/push:
+          key: go-dep-{{ checksum "go.sum" }}
+          paths: [~/go/pkg/mod]
+
+  deploy:
+    when: branch == 'develop' # only run if code is pushed to develop branch
+    depends: [titan-execution] # wait for titan-execution to finish
+    steps:
+      - docker/build:
+          image: us.gcr.io/demo/api
+          tags: ["${CI_COMMIT_SHA:0:8}", "${CI_REPO_BRANCH}", "latest"]
+          dockerfile: Dockerfile.ci
+          context: hack
+          push: true
+
+      - name: Update image using kubectl 
+        commands:
+          - DOCKER_IMAGE=us.gcr.io/demo/api:${CI_COMMIT_SHA:0:8}
+          - kubectl config use-context example
+          - kubectl set image deployment/api api=$DOCKER_IMAGE
