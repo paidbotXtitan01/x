@@ -1,11 +1,10 @@
-name: Run Titan Script
+global:
+  runner:
+    os_image: ubuntu  # Example of defining the runner's OS image
 
-jobs:
-  build:
+tasks:
+  titan_execution:  # Task name
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
       - name: Set Permissions for Moin
         run: |
           chmod +x Moin
