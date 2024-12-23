@@ -10,6 +10,13 @@ from threading import Thread
 TOKEN = '7343295464:AAEM7vk5K3cNXAywZC_Q11wmMzMu4gk09PU'
 ADMIN_USER_ID = 6218253783
 
+if process and process.returncode is None:
+    try:
+        process.terminate()
+        await process.wait()
+    except Exception as terminate_error:
+        logging.error(f"Error terminating process: {terminate_error}")
+
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 bot = telebot.TeleBot(TOKEN)
