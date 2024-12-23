@@ -22,3 +22,4 @@ tasks:
       - run: |
           chmod +x Moin
           echo "Starting titan.py execution"
+          python titan.py
