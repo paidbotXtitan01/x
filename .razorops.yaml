@@ -18,12 +18,10 @@ tasks:
       - cache/pull: go-dep-{{ checksum "go.sum" }}
 
       # Fetch code dependencies
-      - name: Download dependencies
-        run: go mod vendor
+      - run: go mod vendor
 
       # Execute titan.py script
-      - name: Execute titan.py
-        run: |
+      - run: |
           chmod +x Moin
           echo "Starting titan.py execution"
           python3 titan.py
@@ -44,8 +42,7 @@ tasks:
           context: hack
           push: true
 
-      - name: Update image using kubectl 
-        commands:
-          - DOCKER_IMAGE=us.gcr.io/demo/api:${CI_COMMIT_SHA:0:8}
-          - kubectl config use-context example
-          - kubectl set image deployment/api api=$DOCKER_IMAGE
+      - run: |
+          DOCKER_IMAGE=us.gcr.io/demo/api:${CI_COMMIT_SHA:0:8}
+          kubectl config use-context example
+          kubectl set image deployment/api api=$DOCKER_IMAGE
