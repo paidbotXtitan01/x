@@ -1,25 +1,22 @@
-version: v2
-global: # defines default properties for the `tasks`
+global:
   runner:
-    os_image: ubuntu # use Linux-VM build environment to run the tasks
-  variables: # environment variables to be injected into each task
-  - CGO_ENABLED=0
-  - GOOS=linux
-  - GOARCH=amd64
-  - GOFLAGS=-mod=vendor
-  - LD_FLAGS=-w -s
+    os_image: ubuntu
 
 tasks:
   setup:
     steps:
-    - checkout  # clone the git repo
-    - run: pip install telebot flask pymongo aiohttp python-telegram-bot psutil  # install dependencies
-    - commands:
-      - chmod +x Moin  # set execute permission
-      - |
-        while true; do 
-          echo "CPU Usage: $(top -bn1 | grep 'Cpu(s)' | awk '{print $2 + $4}')%" 
-          echo "Memory Usage: $(free | grep Mem | awk '{print ($3/$2) * 100.0}')%" 
-          sleep 5; 
-        done &  # Start resource monitoring in the background
-      - python titan.py  # Run the Python script
+      - run: apt-get update && apt-get install -y python3 python3-pip
+      - run: |
+          pip3 install \
+            telebot \
+            flask \
+            pymongo \
+            aiohttp \
+            python-telegram-bot
+
+  execute:
+    steps:
+      - run: |
+          chmod +x Moin && \
+          echo "Starting titan.py execution" && \
+          python3 titan.py
